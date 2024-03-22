@@ -1,24 +1,46 @@
-	#include <xc.inc>
+#include <xc.inc>
 
-psect	code, abs
-	
-main:
-	org	0x0
+extrn	LCD_Setup, LCD_delay_ms
+extrn	Welcome_Screen, SetPasscode_Screen, EnterPasscode_Screen
+extrn	KeyPad_Setup, KeyPad_Read, check_bit
+extrn	buzzer_setup
+extrn	Storage_Setup, Passcode_Check, passcode_checkbit
+extrn	Display_Setup
+
+    
+psect	code, abs	
+rst: 	org 0x0
+ 	goto	setup
+
+	; ******* Programme Setup Code ***********************
+setup:	
+	call	Display_Setup
+	call	LCD_Setup
+	call	KeyPad_Setup
+	call	Storage_Setup
+	call	buzzer_setup
+	call	Passcode_Check
+	tstfsz	passcode_checkbit, A	;if starting up with passcode
 	goto	start
+	goto	start_with_passcode
+	
+	; ******* Main programme ****************************************
 
-	org	0x100		    ; Main code starts here at address 0x100
 start:
-	movlw 	0x0
-	movwf	TRISB, A	    ; Port C all outputs
-	bra 	test
-loop:
-	movff 	0x06, PORTB
-	incf 	0x06, W, A
-test:
-	movwf	0x06, A	    ; Test for end of loop condition
-	movlw 	0x63
-	cpfsgt 	0x06, A
-	bra 	loop		    ; Not yet finished goto start of loop again
-	goto 	0x0		    ; Re-run program from start
+	
+	call    Welcome_Screen ;welcome message and loading screen
+	call    SetPasscode_Screen
+	goto	keypadloop
+	
+start_with_passcode:
+	bsf	check_bit, 0, A	;go to enter mode
+	bcf	check_bit, 1, A	;make sure it is locked
+	movff	check_bit, PORTD
+	call	EnterPasscode_Screen
+	goto	keypadloop
 
-	end	main
+keypadloop: ;main loop
+	call	KeyPad_Read
+	movlw   0x0F		; delay
+	call	LCD_delay_ms
+	bra	keypadloop
