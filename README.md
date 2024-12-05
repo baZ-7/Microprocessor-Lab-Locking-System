@@ -1,5 +1,6 @@
-# Microprocessors Lab
-Repository for Physics Year 3 microprocessors lab
+# Microprocessors Project
+Repository for the Microprocessor Project
+by: Andrew & Dash
 
 Assembly program for a PIC18 microprocessor Locking System
 
